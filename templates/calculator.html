@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Cost Calculator | Shree Khadapati Balaji Construction{% endblock %}
+{% block content %}
+<section class="page-hero"><p class="eyebrow">PLAN YOUR BUDGET</p><h1>Construction cost calculator.</h1><p>Get a quick preliminary estimate based on your built-up area and an assumed rate.</p></section>
+<section class="section narrow-section"><div class="form-card">
+<form method="post" class="form-grid">
+<div class="field full"><label for="area">Area per floor (square feet)</label><input id="area" name="area" type="number" min="1" max="1000000" step="0.01" placeholder="e.g. 1200" required></div>
+<div class="field"><label for="floors">Number of floors</label><select id="floors" name="floors">{% for n in range(1, 11) %}<option value="{{ n }}">{{ n }} floor{% if n > 1 %}s{% endif %}</option>{% endfor %}</select></div>
+<div class="field"><label for="rate">Estimated rate (₹ / sq ft)</label><input id="rate" name="rate" type="number" min="1" max="100000" step="1" value="1800" required></div>
+<div class="full"><button class="btn btn-primary" type="submit">Calculate estimate</button></div>
+</form>
+{% if result %}<div class="estimate-result"><p class="eyebrow">YOUR PRELIMINARY ESTIMATE</p><p>Total built-up area: <strong>{{ "{:,.2f}".format(result.area) }} sq ft</strong></p><p>Assumed rate: <strong>₹{{ "{:,.0f}".format(result.rate) }} / sq ft</strong></p><div class="estimate-total">₹{{ "{:,.2f}".format(result.cost) }}</div><p class="small-note">This is an indicative estimate only. Actual costs vary with location, soil, design, materials, labour, approvals, taxes and site conditions. Get a qualified professional quotation before making decisions.</p><a class="text-link" href="{{ url_for('contact') }}">Ask for a project quotation ↗</a></div>{% endif %}
+</div></section>
+{% endblock %}

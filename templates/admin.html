@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel | Shree Khadapati Balaji Construction{% endblock %}
+{% block content %}
+<section class="page-hero" style="background:#101416; border-bottom:2px solid var(--gold);">
+  <p class="eyebrow" style="color:var(--gold);">ADMINISTRATOR CONTROL DESK</p>
+  <h1 style="color:#fff; margin:6px 0 10px;">Master Admin Dashboard</h1>
+  <p style="color:#ddd; max-width:700px; margin:0 auto; font-size:14px;">
+    Manage customer building projects, publish portfolio works, monitor client construction progress, and review leads.
+  </p>
+</section>
+
+<section class="section admin-section" style="max-width:1300px; margin:auto;">
+  
+  <!-- Stats Row -->
+  <div class="admin-stats" style="grid-template-columns:repeat(4, 1fr); gap:15px; margin-bottom:28px;">
+    <div class="admin-stat" style="border-radius:8px; border-top:4px solid var(--gold);">
+      <span style="font-size:12px; text-transform:uppercase; color:#bbb;">Customer Buildings</span>
+      <strong style="font-size:32px; color:var(--gold);">{{ customer_projects|length }}</strong>
+      <small style="color:#888; font-size:11px; margin-top:4px;">Under active construction</small>
+    </div>
+    <div class="admin-stat" style="border-radius:8px; border-top:4px solid #28a745;">
+      <span style="font-size:12px; text-transform:uppercase; color:#bbb;">Registered Customers</span>
+      <strong style="font-size:32px; color:#28a745;">{{ registered_customers|length }}</strong>
+      <small style="color:#888; font-size:11px; margin-top:4px;">Client accounts created</small>
+    </div>
+    <div class="admin-stat" style="border-radius:8px; border-top:4px solid #17a2b8;">
+      <span style="font-size:12px; text-transform:uppercase; color:#bbb;">Portfolio Works</span>
+      <strong style="font-size:32px; color:#17a2b8;">{{ projects|length }}</strong>
+      <small style="color:#888; font-size:11px; margin-top:4px;">Public website showcase</small>
+    </div>
+    <div class="admin-stat" style="border-radius:8px; border-top:4px solid #ffc107;">
+      <span style="font-size:12px; text-transform:uppercase; color:#bbb;">Client Enquiries</span>
+      <strong style="font-size:32px; color:#ffc107;">{{ enquiries|length }}</strong>
+      <small style="color:#888; font-size:11px; margin-top:4px;">New inquiries received</small>
+    </div>
+  </div>
+
+  <!-- SECTION 1: CUSTOMER BUILDING PROJECTS (PRIMARY FOCUS) -->
+  <div id="customer-projects" class="admin-card" style="border:2px solid var(--gold); border-radius:10px; margin-bottom:30px; box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+    <div style="background:#111517; color:#fff; padding:18px 22px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 style="margin:0; font-size:20px; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>🏗️</span> Customer Building Projects (ग्राहक भवन प्रोजेक्ट्स)
+        </h2>
+        <p style="margin:4px 0 0; font-size:12px; color:#ccc;">
+          Yahan se aap kisi bhi registered customer ki building ka project add aur update kar sakte hain. Customer ko sirf apna project dikhega.
+        </p>
+      </div>
+      <button type="button" onclick="toggleAssignForm()" class="btn btn-yellow" style="font-size:12px; padding:7px 16px;">
+        + Assign New Project to Customer
+      </button>
+    </div>
+
+    <!-- Collapsible Assign Project Form -->
+    <div id="assign_project_form" style="display:{% if customer_projects|length == 0 %}block{% else %}none{% endif %}; padding:24px; background:#fdfcf9; border-bottom:1px solid #ebd9a8;">
+      <h3 style="margin:0 0 16px; font-size:17px; color:#111; font-weight:800;">
+        Assign New Construction Project to Customer
+      </h3>
+      
+      {% if registered_customers %}
+      <form method="post" action="{{ url_for('add_customer_project') }}" enctype="multipart/form-data" class="form-grid">
+        
+        <div class="field full">
+          <label for="cp_user_id">Select Customer (ग्राहक चुनें) *</label>
+          <select id="cp_user_id" name="user_id" required style="font-weight:700;">
+            <option value="">-- Choose Registered Customer --</option>
+            {% for c in registered_customers %}
+              <option value="{{ c.id }}">{{ c.name }} ({{ c.email }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="cp_title">Project / Building Title (भवन / प्रोजेक्ट का नाम) *</label>
+          <input id="cp_title" name="title" maxlength="200" placeholder="e.g. Sharma Niwas - 3 BHK Luxury Duplex Villa" required>
+        </div>
+
+        <div class="field">
+          <label for="cp_building_type">Building Type (प्रकार) *</label>
+          <select id="cp_building_type" name="building_type" required>
+            <option value="Residential Villa">Residential Villa (आवासीय विला)</option>
+            <option value="Independent House / Kothi">Independent House / Kothi</option>
+            <option value="Commercial Complex / Shop">Commercial Complex / Shop (व्यावसायिक)</option>
+            <option value="Multi-Story Apartment">Multi-Story Apartment</option>
+            <option value="Farmhouse Construction">Farmhouse Construction</option>
+            <option value="Renovation & Modernization">Renovation & Modernization</option>
+            <option value="Industrial Shed / Factory">Industrial Shed / Factory</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="cp_location">Plot / Site Location (साइट का पता) *</label>
+          <input id="cp_location" name="location" placeholder="e.g. Plot No. 45, Mangalam City, Kalwar Road, Jaipur" required>
+        </div>
+
+        <div class="field">
+          <label for="cp_stage">Current Stage (वर्तमान कार्य प्रगति चरण) *</label>
+          <select id="cp_stage" name="stage" required>
+            <option value="Planning & Approvals">1. Planning & Approvals (प्लानिंग व नक्शा पास)</option>
+            <option value="Excavation & Foundation">2. Excavation & Foundation (नींव व खुदाई)</option>
+            <option value="Structure & Slab Casting">3. Structure & Slab Casting (पिलर व छत ढलाई)</option>
+            <option value="Brickwork & Plastering">4. Brickwork & Plastering (दीवार व प्लास्टर)</option>
+            <option value="Plumbing & Electrical">5. Plumbing & Electrical (पाइप व वायरिंग)</option>
+            <option value="Flooring & Tiling">6. Flooring & Tiling (फ्लोरिंग व टाइल्स)</option>
+            <option value="Painting & Finishing">7. Painting & Finishing (कलर व फिनिशिंग)</option>
+            <option value="Ready for Handover">8. Ready for Handover (तैयार / चाबी सौंपना)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="cp_progress">Construction Progress (प्रतिशत: 0% से 100%) *</label>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <input id="cp_progress" name="progress" type="range" min="0" max="100" value="25" oninput="document.getElementById('prog_val').textContent = this.value + '%'" style="flex:1;">
+            <strong id="prog_val" style="min-width:45px; font-size:16px; color:#b58200;">25%</strong>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cp_total_area">Total Built-up Area (कुल कवर्ड एरिया)</label>
+          <input id="cp_total_area" name="total_area" placeholder="e.g. 2,800 sq.ft (G+1 Floors)">
+        </div>
+
+        <div class="field">
+          <label for="cp_start_date">Work Start Date (कार्य शुरू दिनांक)</label>
+          <input id="cp_start_date" name="start_date" placeholder="e.g. 15 Jan 2025">
+        </div>
+
+        <div class="field">
+          <label for="cp_expected_completion">Target Handover Date (पूर्ण होने की संभावित तारीख)</label>
+          <input id="cp_expected_completion" name="expected_completion" placeholder="e.g. 30 Oct 2025">
+        </div>
+
+        <div class="field">
+          <label for="cp_supervisor_name">Site Engineer / Supervisor Name</label>
+          <input id="cp_supervisor_name" name="supervisor_name" placeholder="e.g. Er. Devendra Kumawat" value="Er. Devendra Kumawat">
+        </div>
+
+        <div class="field">
+          <label for="cp_supervisor_phone">Supervisor Phone Number</label>
+          <input id="cp_supervisor_phone" name="supervisor_phone" placeholder="e.g. +91 8058-339974" value="+91 8058-339974">
+        </div>
+
+        <div class="field">
+          <label for="cp_image_files">Upload Site Progress Photos (Multiple Photos चुनें)</label>
+          <input id="cp_image_files" name="image_files" type="file" accept="image/*" multiple>
+          <small style="color:#b58200; font-size:11px; font-weight:700;">📸 Ek se zyada photos select karne ke liye Ctrl / Shift daba kar choose karein.</small>
+        </div>
+
+        <div class="field">
+          <label for="cp_image_url">Or Image URL (optional)</label>
+          <input id="cp_image_url" name="image_url" type="url" placeholder="https://...">
+        </div>
+
+        <div class="field full">
+          <label for="cp_latest_update">Latest Site Update / Engineer Note (इंजीनियर का ताजा संदेश जो कस्टमर को दिखेगा)</label>
+          <textarea id="cp_latest_update" name="latest_update" rows="3" placeholder="e.g. Ground floor roof casting completed successfully. Water curing scheduled for 10 days before first floor brickwork begins."></textarea>
+        </div>
+
+        <div class="full" style="display:flex; gap:10px;">
+          <button class="btn btn-yellow" type="submit" style="padding:12px 24px; font-weight:800;">
+            ✓ Assign Building Project to Customer
+          </button>
+          <button type="button" onclick="toggleAssignForm()" class="btn btn-dark" style="padding:12px 20px;">
+            Cancel
+          </button>
+        </div>
+      </form>
+      {% else %}
+        <div style="background:#fff3cd; border:1px solid #ffeeba; padding:15px; border-radius:6px; color:#856404;">
+          <strong>No registered customers found yet.</strong>
+          When a customer creates an account on the Sign Up page, they will appear in the customer dropdown list here for project assignment.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- List of Existing Customer Projects -->
+    <div style="padding:20px;">
+      {% if customer_projects %}
+        <div style="display:grid; gap:20px;">
+          {% for cp in customer_projects %}
+          <div style="border:1px solid #ebd9a8; border-radius:8px; background:#fff; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.04);">
+            <div style="background:#fcfaf5; padding:15px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div>
+                <span style="background:var(--gold); color:#111; font-weight:800; font-size:10px; padding:2px 8px; border-radius:4px; text-transform:uppercase;">
+                  {{ cp.building_type }}
+                </span>
+                <strong style="font-size:16px; color:#111; margin-left:8px;">{{ cp.title }}</strong>
+                <div style="font-size:12px; color:#666; margin-top:3px;">
+                  👤 <strong>Customer:</strong> {{ cp.customer_name }} (<a href="mailto:{{ cp.customer_email }}" style="color:#0066cc;">{{ cp.customer_email }}</a>) | 📍 {{ cp.location }}
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:13px; font-weight:800; color:#b58200;">
+                  Progress: {{ cp.progress }}%
+                </span>
+                <button type="button" onclick="toggleQuickEdit('edit_{{ cp.id }}')" class="btn btn-dark" style="font-size:11px; padding:6px 12px;">
+                  ✏️ Update Status
+                </button>
+                <form method="post" action="{{ url_for('delete_customer_project', project_id=cp.id) }}" onsubmit="return confirm('Are you sure you want to delete this customer project?');" style="margin:0;">
+                  <button type="submit" class="btn btn-danger" style="font-size:11px; padding:6px 12px; background:#dc3545; color:#fff; border:0;">
+                    🗑️ Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Quick Info Bar -->
+            <div style="padding:14px 20px; display:grid; grid-template-columns:1.5fr 1fr 2fr; gap:15px; font-size:12px; border-bottom:1px solid #f0f0f0; background:#fff;">
+              <div>
+                <span style="color:#777; display:block;">Current Stage:</span>
+                <strong style="color:#111; font-size:13px;">🏗️ {{ cp.stage }}</strong>
+              </div>
+              <div>
+                <span style="color:#777; display:block;">Area / Delivery:</span>
+                <strong>{{ cp.total_area or '-' }}</strong> / <span style="color:#28a745;">{{ cp.expected_completion or '-' }}</span>
+              </div>
+              <div>
+                <span style="color:#777; display:block;">Latest Site Update for Customer:</span>
+                <span style="color:#333;">{{ cp.latest_update or 'No notes added yet.' }}</span>
+              </div>
+            <!-- Project Photos Strip -->
+            <div style="padding:12px 20px; background:#fafafa; border-bottom:1px solid #f0f0f0;">
+              <strong style="font-size:12px; color:#444; display:block; margin-bottom:8px;">
+                📸 Site Photos Gallery ({{ cp.photos|length }} photos uploaded):
+              </strong>
+              {% if cp.photos %}
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                  {% for ph in cp.photos %}
+                    <div style="position:relative; border:1px solid #ddd; border-radius:6px; overflow:hidden; background:#111; width:75px; height:60px; display:flex; align-items:center; justify-content:center;">
+                      <a href="{{ ph.image_url }}" target="_blank" title="{{ ph.caption or 'Click to view full photo' }}">
+                        <img src="{{ ph.image_url }}" style="max-height:60px; max-width:75px; object-fit:contain;">
+                      </a>
+                      <form method="post" action="{{ url_for('delete_customer_project_photo', photo_id=ph.id) }}" onsubmit="return confirm('Delete this photo from gallery?');" style="position:absolute; top:2px; right:2px; margin:0;">
+                        <button type="submit" style="background:rgba(220,53,69,0.9); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="Delete Photo">✕</button>
+                      </form>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <span style="font-size:12px; color:#888;">No photos uploaded yet for this building. Use 'Update Status' below to add photos.</span>
+              {% endif %}
+            </div>
+
+            <!-- Quick Edit Form (Hidden by default) -->
+            <div id="edit_{{ cp.id }}" style="display:none; padding:18px 20px; background:#fffdf5; border-top:2px dashed var(--gold);">
+              <h4 style="margin:0 0 12px; font-size:14px; font-weight:800; color:#b58200;">
+                Update Progress, Stage & Add Photos for {{ cp.customer_name }}'s Project
+              </h4>
+              <form method="post" action="{{ url_for('update_customer_project', project_id=cp.id) }}" enctype="multipart/form-data" class="form-grid">
+                
+                <div class="field">
+                  <label>Update Construction Stage</label>
+                  <select name="stage">
+                    <option value="Planning & Approvals" {% if cp.stage == 'Planning & Approvals' %}selected{% endif %}>Planning & Approvals</option>
+                    <option value="Excavation & Foundation" {% if cp.stage == 'Excavation & Foundation' %}selected{% endif %}>Excavation & Foundation</option>
+                    <option value="Structure & Slab Casting" {% if cp.stage == 'Structure & Slab Casting' %}selected{% endif %}>Structure & Slab Casting</option>
+                    <option value="Brickwork & Plastering" {% if cp.stage == 'Brickwork & Plastering' %}selected{% endif %}>Brickwork & Plastering</option>
+                    <option value="Plumbing & Electrical" {% if cp.stage == 'Plumbing & Electrical' %}selected{% endif %}>Plumbing & Electrical</option>
+                    <option value="Flooring & Tiling" {% if cp.stage == 'Flooring & Tiling' %}selected{% endif %}>Flooring & Tiling</option>
+                    <option value="Painting & Finishing" {% if cp.stage == 'Painting & Finishing' %}selected{% endif %}>Painting & Finishing</option>
+                    <option value="Ready for Handover" {% if cp.stage == 'Ready for Handover' %}selected{% endif %}>Ready for Handover</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Update Progress % (0 to 100)</label>
+                  <input name="progress" type="number" min="0" max="100" value="{{ cp.progress }}" required>
+                </div>
+
+                <div class="field">
+                  <label>Add More Site Photos (Multiple Photos चुनें)</label>
+                  <input name="image_files" type="file" accept="image/*" multiple>
+                  <small style="color:#b58200; font-size:11px;">Ek saath kayi photos select karke gallery me daal sakte hain</small>
+                </div>
+
+                <div class="field">
+                  <label>Photo Caption / Milestone Note (optional)</label>
+                  <input name="photo_caption" placeholder="e.g. Ground Floor Slab Casting, Pillar Reinforcement">
+                </div>
+
+                <div class="field full">
+                  <label>Or Add Photo URL (optional)</label>
+                  <input name="image_url" type="url" placeholder="https://...">
+                </div>
+
+                <div class="field full">
+                  <label>Latest Site Update Note (कस्टमर को तुरंत दिखाई देगा)</label>
+                  <textarea name="latest_update" rows="2">{{ cp.latest_update }}</textarea>
+                </div>
+
+                <div class="full" style="display:flex; gap:10px;">
+                  <button class="btn btn-yellow" type="submit" style="font-size:12px; padding:8px 18px;">
+                    ✓ Save Progress & Upload Photos
+                  </button>
+                  <button type="button" onclick="toggleQuickEdit('edit_{{ cp.id }}')" class="btn btn-dark" style="font-size:12px; padding:8px 14px;">
+                    Close
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:35px 20px; color:#666; background:#fafafa; border-radius:8px;">
+          <span style="font-size:32px; display:block; margin-bottom:8px;">🏗️</span>
+          <strong>No customer building projects assigned yet.</strong>
+          <p style="margin:6px 0 15px; font-size:13px;">Click the button below to assign a building project to a registered customer.</p>
+          <button type="button" onclick="toggleAssignForm()" class="btn btn-yellow" style="font-size:13px; padding:8px 20px;">
+            + Assign First Customer Project
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- SECTION 2: REGISTERED CUSTOMERS -->
+  <div class="admin-card" style="border-radius:10px; margin-bottom:30px;">
+    <h2 style="font-size:18px; margin:0 0 15px; display:flex; align-items:center; gap:8px;">
+      <span>👥</span> Registered Customers (पंजीकृत ग्राहक)
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Registered Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>#{{ u.id }}</td>
+            <td><strong>{{ u.name }}</strong></td>
+            <td>{{ u.email }}</td>
+            <td>
+              {% if u.email.lower() == 'shreekhadapaticontruction@gamil.com' or u.role == 'admin' %}
+                <span style="background:#111; color:var(--gold); font-size:10px; padding:2px 7px; border-radius:3px; font-weight:800;">ADMIN</span>
+              {% else %}
+                <span style="background:#e4f5e9; color:#195a32; font-size:10px; padding:2px 7px; border-radius:3px; font-weight:800;">CUSTOMER</span>
+              {% endif %}
+            </td>
+            <td>{{ u.created_at }}</td>
+            <td>
+              {% if u.email.lower() != 'shreekhadapaticontruction@gamil.com' and u.role != 'admin' %}
+                <button type="button" onclick="assignToCustomer('{{ u.id }}', '{{ u.name|escape }}')" class="btn btn-yellow" style="font-size:11px; padding:4px 10px; font-weight:700;">
+                  + Assign Building
+                </button>
+              {% else %}
+                <span style="color:#888; font-size:12px;">Admin Account</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6">No registered users.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 3: WEBSITE PORTFOLIO PROJECTS -->
+  <div class="admin-card" style="border-radius:10px; margin-bottom:30px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+      <h2 style="font-size:18px; margin:0; display:flex; align-items:center; gap:8px;">
+        <span>🌐</span> Public Portfolio Works (वेबसाइट पर दिखने वाले प्रोजेक्ट्स)
+      </h2>
+      <a href="{{ url_for('add_project_page') }}" class="btn btn-yellow" style="font-size:11px; padding:6px 14px;">
+        + Publish New Portfolio Project
+      </a>
+    </div>
+    
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project Title</th>
+            <th>Category</th>
+            <th>Image</th>
+            <th>Date Added</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in projects %}
+          <tr>
+            <td><strong>{{ p.title }}</strong></td>
+            <td><span class="tag">{{ p.category }}</span></td>
+            <td>
+              {% if p.image_url %}
+                <img src="{{ p.image_url }}" alt="{{ p.title }}" style="width:50px; height:35px; object-fit:cover; border-radius:4px;">
+              {% else %}
+                <span style="color:#aaa;">No image</span>
+              {% endif %}
+            </td>
+            <td>{{ p.created_at }}</td>
+            <td>
+              <form method="post" action="{{ url_for('delete_project', project_id=p.id) }}" onsubmit="return confirm('Delete this portfolio project?');" style="margin:0;">
+                <button class="btn btn-danger btn-small" type="submit" style="font-size:11px; padding:4px 8px;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">No portfolio projects.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: CUSTOMER ENQUIRIES -->
+  <div class="admin-card" style="border-radius:10px; margin-bottom:30px;">
+    <h2 style="font-size:18px; margin:0 0 15px; display:flex; align-items:center; gap:8px;">
+      <span>📩</span> Customer Contact Inquiries (पूछताछ संदेश)
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Contact</th>
+            <th>Project Type</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in enquiries %}
+          <tr>
+            <td style="white-space:nowrap;">{{ e.created_at }}</td>
+            <td><strong>{{ e.name }}</strong></td>
+            <td>
+              <a href="mailto:{{ e.email }}">{{ e.email }}</a><br>
+              <a href="tel:{{ e.phone }}">{{ e.phone }}</a>
+            </td>
+            <td><span class="tag">{{ e.project_type }}</span></td>
+            <td style="max-width:350px;">{{ e.message }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">No inquiries yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<script>
+function toggleAssignForm() {
+  const form = document.getElementById('assign_project_form');
+  if (form.style.display === 'none' || !form.style.display) {
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    form.style.display = 'none';
+  }
+}
+
+function toggleQuickEdit(id) {
+  const box = document.getElementById(id);
+  box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+}
+
+function assignToCustomer(userId, userName) {
+  const form = document.getElementById('assign_project_form');
+  form.style.display = 'block';
+  const select = document.getElementById('cp_user_id');
+  select.value = userId;
+  document.getElementById('cp_title').value = userName + ' - Residential Villa';
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

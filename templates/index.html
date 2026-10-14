@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Shree Khadapati Balaji Construction | Building Trust, Creating Landmarks{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-shade"></div>
+  <div class="hero-inner">
+    <div class="founder-circle">
+      <img src="{{ url_for('static', filename='image/founder.jpg') }}" alt="Ram Lal Kumawat - Founder">
+    </div>
+    <div class="hero-copy">
+      <h1>SHREE KHADAPATI<br><span>BALAJI CONSTRUCTION</span></h1>
+      <h2>Building Trust &nbsp; Creating Landmarks</h2>
+      <p>Led by Ram Lal Kumawat with 20+ years of experience in construction contracting and project management.</p>
+      <div class="hero-actions">
+        <a class="btn btn-yellow" href="tel:+918058339974">☎ <span>CALL NOW<small>+91 8058-339974</small></span></a>
+        <a class="btn btn-outline-yellow" href="{{ url_for('contact') }}">▣ <span>GET FREE QUOTE<small>+91 6376-772338</small></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services-section section" id="services">
+  <p class="eyebrow">WHAT WE DO</p>
+  <h2 class="section-title">Our Services</h2>
+  <div class="services-grid">
+    <article class="service-card"><span>⌂</span><h3>House<br>Construction</h3><p>Premium quality residential construction.</p></article>
+    <article class="service-card"><span>▦</span><h3>Commercial<br>Buildings</h3><p>Office, showroom and commercial building projects.</p></article>
+    <article class="service-card"><span>⚒</span><h3>Renovation &<br>Remodeling</h3><p>Modern renovation and remodeling solutions.</p></article>
+    <article class="service-card"><span>📐</span><h3>Architecture &<br>Planning</h3><p>Professional planning, designing and consultancy.</p></article>
+    <article class="service-card"><span>▰</span><h3>Infrastructure<br>Development</h3><p>Roads, civil works and infrastructure projects.</p></article>
+    <article class="service-card"><span>🏗</span><h3>Construction<br>Contracting</h3><p>Complete construction contracting and project management.</p></article>
+  </div>
+</section>
+
+<section class="about-section section" id="about">
+  <div class="about-photo">
+    <img src="{{ url_for('static', filename='image/founder.jpg') }}" alt="Ram Lal Kumawat - Shree Khadapati Balaji Construction">
+  </div>
+  <div class="about-copy">
+    <p class="eyebrow">ABOUT OUR FOUNDER</p>
+    <h2>Ram Lal Kumawat</h2>
+    <h3>Owner & Founder – Shree Khadapati Balaji Construction</h3>
+    <p>With more than 20 years of experience in construction contracting and project management, Ram Lal Kumawat has successfully completed residential, commercial and infrastructure projects across Rajasthan.</p>
+    <div class="achievement-grid">
+      <div><b>✹ 20+</b><span>Years Experience</span></div>
+      <div><b>▦ 500+</b><span>Projects Completed</span></div>
+      <div><b>♟ 100%</b><span>Client Satisfaction</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="projects-section section" id="projects">
+  <p class="eyebrow">OUR PROJECTS</p>
+  <h2 class="section-title">Recent Projects</h2>
+  <div class="recent-projects">
+    {% for project in projects %}
+    <a class="recent-project" href="{{ url_for('projects') }}">
+      {% if project.image_url %}
+        <img src="{{ project.image_url }}" alt="{{ project.title }}" loading="lazy">
+      {% else %}
+        <div class="project-placeholder">SKBC</div>
+      {% endif %}
+      <strong>{{ project.title }}</strong><span>Jaipur, Rajasthan</span>
+    </a>
+    {% else %}
+    <p>No projects added yet. Admin can add projects from the Admin Panel.</p>
+    {% endfor %}
+  </div>
+  <div class="center-action"><a class="btn btn-dark" href="{{ url_for('projects') }}">View All Projects</a></div>
+</section>
+
+<section class="why-section section" id="why-us">
+  <p class="eyebrow">WHY CHOOSE US</p>
+  <h2 class="section-title">We Build with Excellence</h2>
+  <div class="why-grid">
+    <div><b>◆</b><h3>20+ Years Experience</h3><p>Two decades of industry expertise.</p></div>
+    <div><b>♟</b><h3>Expert Team</h3><p>Skilled professionals and engineers.</p></div>
+    <div><b>◷</b><h3>On-Time Delivery</h3><p>We value time and always deliver on time.</p></div>
+    <div><b>✹</b><h3>Quality Work</h3><p>Committed to the highest standards.</p></div>
+    <div><b>₹</b><h3>Transparent Pricing</h3><p>Honest pricing with no hidden costs.</p></div>
+    <div><b>◇</b><h3>Customer Satisfaction</h3><p>Client satisfaction is our top priority.</p></div>
+  </div>
+</section>
+
+<section class="contact-strip">
+  <div><strong>☎ &nbsp; Have a Project in Mind?</strong><span>Let's build something great together!</span></div>
+  <a class="strip-phone" href="tel:+918058339974">☎ &nbsp; Call Us <b>+91 8058-339974</b></a>
+  <a class="strip-phone" href="tel:+916376772338">☎ &nbsp; Call Us <b>+91 6376-772338</b></a>
+  <a class="btn btn-dark" href="{{ url_for('contact') }}">GET FREE QUOTE</a>
+</section>
+{% endblock %}

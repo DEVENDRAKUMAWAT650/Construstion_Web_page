@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Shree Khadapati Balaji Construction - Building Trust, Creating Landmarks in Jaipur, Rajasthan.">
+  <title>{% block title %}Shree Khadapati Balaji Construction | Jaipur{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left"><a href="tel:+918058339974">☎ +91 8058-339974</a><a href="tel:+916376772338">☎ +91 6376-772338</a><span>📍 Jaipur, Rajasthan, India</span></div>
+    <div class="topbar-tag">Building Trust&nbsp; • &nbsp;Creating Landmarks</div>
+  </div>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='image/logo_image.png') }}" alt="Shree Khadapati Balaji Construction Logo" class="brand-logo-img">
+      <span><strong>SHREE KHADAPATI</strong><small>BALAJI CONSTRUCTION</small></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="nav-links">
+      <a class="active" href="{{ url_for('home') }}">Home</a>
+      <a href="#about">About Us</a><a href="#services">Services</a>
+      <a href="{{ url_for('projects') }}">Projects</a><a href="#why-us">Why Choose Us</a>
+      <a href="{{ url_for('contact') }}">Contact Us</a>
+      {% if nav_user %}
+        {% if nav_is_admin %}
+          <a href="{{ url_for('add_project_page') }}" style="color:var(--gold);font-weight:900;">+ Add Project</a>
+          <a href="{{ url_for('admin') }}" class="{% if request.endpoint == 'admin' %}active{% endif %}">Admin Panel</a>
+        {% else %}
+          <a href="{{ url_for('customer_dashboard') }}" style="color:var(--gold);font-weight:900;" class="{% if request.endpoint == 'customer_dashboard' %}active{% endif %}">🏗️ My Building Project</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}">Logout ({{ nav_user.name }})</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a><a class="nav-cta" href="{{ url_for('contact') }}">Get a Quote</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    <div class="flash-wrap">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}<div class="flash flash-{{ category }}" role="status">{{ message }}</div>{% endfor %}
+      {% endwith %}
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="footer-brand-col"><a class="brand footer-brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='image/logo_image.png') }}" alt="Shree Khadapati Balaji Construction Logo" class="brand-logo-img"><span><strong>SHREE KHADAPATI</strong><small>BALAJI CONSTRUCTION</small></span></a><p>© 2025 Shree Khadapati Balaji Construction.<br>All Rights Reserved.</p></div>
+    <div><h3>Quick Links</h3><a href="{{ url_for('home') }}">Home</a><a href="#about">About Us</a><a href="#services">Services</a><a href="{{ url_for('projects') }}">Projects</a><a href="#why-us">Why Choose Us</a><a href="{{ url_for('contact') }}">Contact Us</a></div>
+    <div><h3>Our Services</h3><a href="#services">House Construction</a><a href="#services">Commercial Buildings</a><a href="#services">Renovation & Remodeling</a><a href="#services">Architecture & Planning</a><a href="#services">Infrastructure Development</a><a href="#services">Construction Contracting</a></div>
+    <div class="footer-contact"><h3>Contact Us</h3><p>📍 Jaipur, Rajasthan, India</p><p><a href="tel:+918058339974">☎ +91 8058-339974</a></p><p><a href="tel:+916376772338">☎ +91 6376-772338</a></p><p><a href="mailto:shreekhadapaticontruction@gamil.com">✉ shreekhadapaticontruction@gamil.com</a></p></div>
+  </footer>
+</body>
+</html>

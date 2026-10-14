@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Contact | Shree Khadapati Balaji Construction{% endblock %}
+{% block content %}
+<section class="page-hero"><p class="eyebrow">LET'S TALK</p><h1>Tell us what you're planning.</h1><p>Share a few details and save your enquiry to our project team inbox.</p></section>
+<section class="section narrow-section">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px;text-align:center;">
+  <div style="padding:15px;border:1px solid #e5d6ac;border-radius:8px;background:#fff;">
+    <div style="font-size:24px;color:var(--gold);">☎</div>
+    <div style="font-weight:700;margin-top:5px;">Call Us</div>
+    <div><a href="tel:+918058339974" style="font-weight:600;">+91 8058-339974</a></div>
+    <div><a href="tel:+916376772338" style="font-weight:600;">+91 6376-772338</a></div>
+  </div>
+  <div style="padding:15px;border:1px solid #e5d6ac;border-radius:8px;background:#fff;">
+    <div style="font-size:24px;color:var(--gold);">✉</div>
+    <div style="font-weight:700;margin-top:5px;">Email Us</div>
+    <div style="word-break:break-all;"><a href="mailto:shreekhadapaticontruction@gamil.com" style="font-weight:600;">shreekhadapaticontruction@gamil.com</a></div>
+  </div>
+  <div style="padding:15px;border:1px solid #e5d6ac;border-radius:8px;background:#fff;">
+    <div style="font-size:24px;color:var(--gold);">📍</div>
+    <div style="font-weight:700;margin-top:5px;">Location</div>
+    <div style="font-weight:600;">Jaipur, Rajasthan, India</div>
+  </div>
+</div>
+<div class="form-card">
+<form method="post" class="form-grid">
+<div class="field"><label for="name">Full name</label><input id="name" name="name" maxlength="120" required value="{{ request.form.get('name','') }}"></div>
+<div class="field"><label for="email">Email</label><input id="email" name="email" type="email" maxlength="190" required value="{{ request.form.get('email','') }}"></div>
+<div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" maxlength="30" required value="{{ request.form.get('phone','') }}"></div>
+<div class="field"><label for="project_type">Project type</label><select id="project_type" name="project_type" required><option value="">Select project</option><option>New house</option><option>Apartment</option><option>Commercial building</option><option>Renovation</option><option>Interior work</option><option>Other</option></select></div>
+<div class="field full"><label for="message">Project details</label><textarea id="message" name="message" rows="5" maxlength="5000" placeholder="Location, approximate area, budget range and your goals..." required>{{ request.form.get('message','') }}</textarea></div>
+<div class="full"><button class="btn btn-primary" type="submit">Submit enquiry ↗</button></div>
+</form><p class="small-note">This demo stores enquiries in your MySQL database. It does not automatically send email or WhatsApp messages.</p>
+</div></section>
+{% endblock %}

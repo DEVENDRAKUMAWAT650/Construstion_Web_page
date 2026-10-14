@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}AI House Design | Shree Khadapati Balaji Construction{% endblock %}
+{% block content %}
+<section class="page-hero"><p class="eyebrow">IDEAS INTO IMAGES</p><h1>Imagine your future home.</h1><p>Describe the style, size, materials and surroundings to generate an inspirational architectural concept image.</p></section>
+<section class="section narrow-section"><div class="form-card">
+<form method="post" class="form-grid">
+<div class="field full"><label for="prompt">Describe your house design</label><textarea id="prompt" name="prompt" rows="5" maxlength="1000" placeholder="Example: A modern two-storey Indian family home, cream stone facade, wooden accents, balcony, landscaped front garden, daylight..." required>{{ prompt_used }}</textarea><span class="small-note">Avoid entering personal or confidential information.</span></div>
+<div class="full"><button class="btn btn-primary" type="submit">Generate concept image ✦</button></div>
+</form>
+{% if image_data %}<div class="generated-image"><h2>Your concept image</h2><img src="data:image/png;base64,{{ image_data }}" alt="AI generated architectural concept"><p class="small-note">AI-generated concept only. It is not an engineering drawing, structural plan, or permit-ready blueprint. Ask qualified local professionals to create and approve construction plans.</p></div>{% endif %}
+</div><div class="notice"><strong>Setup required:</strong> add a valid API key to your local <code>.env</code> file and ensure your API account has image-generation access and billing. Never put your API key in HTML or JavaScript.</div></section>
+{% endblock %}

@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% block title %}My Building Project | Shree Khadapati Balaji Construction{% endblock %}
+{% block content %}
+<section class="page-hero" style="background: linear-gradient(135deg, #090c0e 0%, #151a1d 100%); border-bottom: 2px solid var(--gold);">
+  <p class="eyebrow" style="color:var(--gold); font-weight:800; letter-spacing:1.5px;">CLIENT CONSTRUCTION PORTAL</p>
+  <h1 style="color:#fff; font-size:clamp(28px, 4.5vw, 46px); margin:8px 0 12px; font-weight:900;">
+    Welcome, <span style="color:var(--gold);">{{ user.name }}</span> 👋
+  </h1>
+  <p style="color:#cfd4d8; max-width:700px; margin:0 auto; font-size:15px; line-height:1.6;">
+    Live milestone tracking, on-site construction updates, and complete uncropped progress photographs for your building.
+  </p>
+  <div style="display:inline-flex; align-items:center; gap:10px; margin-top:16px; background:rgba(255,189,8,0.12); border:1px solid rgba(255,189,8,0.4); padding:6px 16px; border-radius:30px; font-size:13px; color:var(--gold);">
+    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#28a745; box-shadow:0 0 8px #28a745;"></span>
+    Live Site Monitoring Active
+  </div>
+</section>
+
+<section class="section" style="max-width:1200px; margin:auto; padding:35px 20px 60px;">
+  {% if user_projects %}
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:25px;">
+      <div>
+        <h2 style="font-size:24px; font-weight:800; margin:0; color:#111;">
+          Your Assigned Building Projects ({{ user_projects|length }})
+        </h2>
+        <p style="margin:4px 0 0; color:#666; font-size:13px;">
+          All milestones and site photographs are uploaded and verified directly by Shree Khadapati Balaji Construction engineers.
+        </p>
+      </div>
+      <div style="font-size:12px; color:#555; background:#fff; border:1px solid #e0d5b5; padding:8px 14px; border-radius:6px;">
+        🔒 <strong>Read-Only Client Portal:</strong> Only authorized admin can add or edit project records.
+      </div>
+    </div>
+
+    {% for p in user_projects %}
+    {% set p_index = loop.index0 %}
+    <div class="customer-project-card" style="background:#fff; border:1px solid #e2d3a8; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.06); margin-bottom:45px; overflow:hidden;">
+      
+      <!-- Card Top Header -->
+      <div style="background:#111517; color:#fff; padding:22px 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; border-bottom:3px solid var(--gold);">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+            <span style="background:var(--gold); color:#111; font-weight:900; font-size:11px; padding:3px 10px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;">
+              {{ p.building_type }}
+            </span>
+            <span style="background:rgba(255,255,255,0.12); color:#e0e0e0; font-size:12px; padding:3px 10px; border-radius:4px;">
+              📍 {{ p.location or 'Jaipur, Rajasthan' }}
+            </span>
+          </div>
+          <h3 style="font-size:24px; font-weight:800; margin:0; color:#fff; letter-spacing:-0.5px;">
+            {{ p.title }}
+          </h3>
+        </div>
+        
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-bottom:3px;">
+            Current Stage
+          </div>
+          <div style="background:#fff; color:#111; font-weight:800; font-size:13px; padding:6px 14px; border-radius:6px; border-left:4px solid var(--gold); display:inline-block;">
+            🏗️ {{ p.stage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Body Content -->
+      <div style="padding:28px;">
+        
+        <!-- Progress Bar Area -->
+        <div style="margin-bottom:28px; background:#faf8f2; border:1px solid #ebd9a8; padding:20px; border-radius:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+            <span style="font-weight:800; font-size:15px; color:#222;">
+              Overall Construction Progress
+            </span>
+            <span style="font-weight:900; font-size:26px; color:#b58200;">
+              {{ p.progress }}%
+            </span>
+          </div>
+          
+          <!-- Outer Progress Bar -->
+          <div style="width:100%; height:16px; background:#e6e0d0; border-radius:10px; overflow:hidden; position:relative; box-shadow:inset 0 1px 3px rgba(0,0,0,0.15);">
+            <div style="width:{{ p.progress }}%; height:100%; background:linear-gradient(90deg, #ffbd08 0%, #e6a900 50%, #f39c12 100%); border-radius:10px; transition:width 0.8s ease-in-out; box-shadow:0 0 10px rgba(255,189,8,0.5);"></div>
+          </div>
+
+          <!-- Milestones Stepper -->
+          <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-top:16px; text-align:center;">
+            <div style="padding:8px 4px; background:{% if p.progress >= 20 %}#fff{% else %}#f1ede2{% endif %}; border:1px solid {% if p.progress >= 20 %}#e5ba37{% else %}#ddd{% endif %}; border-radius:6px;">
+              <div style="font-size:15px;">📋</div>
+              <strong style="display:block; font-size:11px; color:{% if p.progress >= 20 %}#111{% else %}#888{% endif %};">Planning</strong>
+            </div>
+            <div style="padding:8px 4px; background:{% if p.progress >= 40 %}#fff{% else %}#f1ede2{% endif %}; border:1px solid {% if p.progress >= 40 %}#e5ba37{% else %}#ddd{% endif %}; border-radius:6px;">
+              <div style="font-size:15px;">⛏️</div>
+              <strong style="display:block; font-size:11px; color:{% if p.progress >= 40 %}#111{% else %}#888{% endif %};">Foundation</strong>
+            </div>
+            <div style="padding:8px 4px; background:{% if p.progress >= 60 %}#fff{% else %}#f1ede2{% endif %}; border:1px solid {% if p.progress >= 60 %}#e5ba37{% else %}#ddd{% endif %}; border-radius:6px;">
+              <div style="font-size:15px;">🧱</div>
+              <strong style="display:block; font-size:11px; color:{% if p.progress >= 60 %}#111{% else %}#888{% endif %};">Structure</strong>
+            </div>
+            <div style="padding:8px 4px; background:{% if p.progress >= 80 %}#fff{% else %}#f1ede2{% endif %}; border:1px solid {% if p.progress >= 80 %}#e5ba37{% else %}#ddd{% endif %}; border-radius:6px;">
+              <div style="font-size:15px;">⚡</div>
+              <strong style="display:block; font-size:11px; color:{% if p.progress >= 80 %}#111{% else %}#888{% endif %};">Services</strong>
+            </div>
+            <div style="padding:8px 4px; background:{% if p.progress >= 100 %}#fff{% else %}#f1ede2{% endif %}; border:1px solid {% if p.progress >= 100 %}#e5ba37{% else %}#ddd{% endif %}; border-radius:6px;">
+              <div style="font-size:15px;">🔑</div>
+              <strong style="display:block; font-size:11px; color:{% if p.progress >= 100 %}#111{% else %}#888{% endif %};">Handover</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specifications and Key Info -->
+        <div style="margin-bottom:28px;">
+          <h4 style="font-size:16px; font-weight:800; color:#111; margin:0 0 14px; border-bottom:2px solid #eee; padding-bottom:6px;">
+            📐 Project Specifications & Site In-charge
+          </h4>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+            <div style="background:#f9f9f9; padding:14px; border-radius:8px; border-left:3px solid var(--gold);">
+              <small style="color:#777; display:block; font-size:11px; text-transform:uppercase;">Built-Up Area</small>
+              <strong style="font-size:15px; color:#111;">{{ p.total_area or 'As per Blueprint' }}</strong>
+            </div>
+            <div style="background:#f9f9f9; padding:14px; border-radius:8px; border-left:3px solid var(--gold);">
+              <small style="color:#777; display:block; font-size:11px; text-transform:uppercase;">Building Type</small>
+              <strong style="font-size:15px; color:#111;">{{ p.building_type }}</strong>
+            </div>
+            <div style="background:#f9f9f9; padding:14px; border-radius:8px; border-left:3px solid #111;">
+              <small style="color:#777; display:block; font-size:11px; text-transform:uppercase;">Start Date</small>
+              <strong style="font-size:15px; color:#111;">{{ p.start_date or 'Started on schedule' }}</strong>
+            </div>
+            <div style="background:#f9f9f9; padding:14px; border-radius:8px; border-left:3px solid #28a745;">
+              <small style="color:#777; display:block; font-size:11px; text-transform:uppercase;">Expected Delivery</small>
+              <strong style="font-size:15px; color:#28a745;">{{ p.expected_completion or 'As per contract' }}</strong>
+            </div>
+          </div>
+
+          <!-- Supervisor Strip -->
+          <div style="margin-top:14px; background:#fffbf0; border:1px solid #ebd9a8; padding:12px 18px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <span style="color:#8a6d10; font-size:12px; font-weight:700;">👷 Site Supervisor:</span>
+              <strong style="font-size:15px; color:#111; margin-left:6px;">{{ p.supervisor_name or 'Er. Devendra Kumawat' }}</strong>
+            </div>
+            {% if p.supervisor_phone %}
+            <a href="tel:{{ p.supervisor_phone }}" class="btn btn-yellow" style="font-size:12px; padding:6px 14px; font-weight:800; border-radius:4px;">
+              ☎ Call Supervisor: {{ p.supervisor_phone }}
+            </a>
+            {% else %}
+            <a href="tel:+918058339974" class="btn btn-yellow" style="font-size:12px; padding:6px 14px; font-weight:800; border-radius:4px;">
+              ☎ Office Helpline
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Latest Site Update Notice -->
+        <div style="background:#f4f7f6; border-left:4px solid #195a32; padding:16px 20px; border-radius:0 8px 8px 0; margin-bottom:30px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+            <strong style="color:#195a32; font-size:14px; display:flex; align-items:center; gap:6px;">
+              <span>📢</span> Latest Engineer Site Log & Update
+            </strong>
+            <span style="font-size:12px; color:#666;">
+              {% if p.updated_at %}Last Updated: {{ p.updated_at.strftime('%d %B %Y, %I:%M %p') if p.updated_at.strftime is defined else p.updated_at }}{% endif %}
+            </span>
+          </div>
+          <p style="margin:0; font-size:14px; color:#222; line-height:1.5;">
+            {{ p.latest_update or 'Work is progressing steadily under engineer supervision according to structural standards.' }}
+          </p>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- COMPLETE UNCROPPED PHOTO GALLERY (MULTIPLE PHOTOS) -->
+        <!-- ============================================== -->
+        <div style="background:#fcfbf7; border:2px solid #ebd9a8; border-radius:10px; padding:22px; margin-bottom:25px;">
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <div>
+              <h4 style="font-size:18px; font-weight:800; color:#111; margin:0; display:flex; align-items:center; gap:8px;">
+                <span>📸</span> Site Construction Photos & Gallery
+                <span style="background:var(--gold); color:#111; font-size:12px; padding:2px 10px; border-radius:20px; font-weight:900;">
+                  {{ p.photos|length if p.photos else (1 if p.image_url else 0) }} Photos
+                </span>
+              </h4>
+              <p style="margin:4px 0 0; color:#666; font-size:13px;">
+                🔍 Click on any photo to view in <strong>Full HD Screen without any cropping</strong>.
+              </p>
+            </div>
+          </div>
+
+          {% set all_photos = p.photos if p.photos else ([{'image_url': p.image_url, 'caption': 'Site Progress Photo'}] if p.image_url else []) %}
+
+          {% if all_photos %}
+            
+            <!-- Featured Full Main Image Frame (Uncropped Contain) -->
+            <div style="position:relative; background:#0d1113; border:2px solid var(--gold); border-radius:10px; overflow:hidden; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.15); margin-bottom:18px;">
+              
+              <!-- Badges on image -->
+              <div style="position:absolute; top:12px; left:12px; z-index:2; display:flex; gap:8px;">
+                <span id="active_badge_{{ p.id }}" style="background:rgba(0,0,0,0.75); color:var(--gold); padding:5px 12px; border-radius:4px; font-size:12px; font-weight:800; border:1px solid var(--gold); backdrop-filter:blur(4px);">
+                  {{ all_photos[0].caption or 'Site Progress' }}
+                </span>
+              </div>
+              
+              <div style="position:absolute; top:12px; right:12px; z-index:2;">
+                <button type="button" onclick="openLightbox('{{ all_photos[0].image_url }}', '{{ all_photos[0].caption or p.title }}', {{ loop.index0 }}, 0)" class="btn btn-yellow" style="font-size:11px; padding:6px 14px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+                  🔍 View Full Size (बिना कटे देखें)
+                </button>
+              </div>
+
+              <!-- Main Image Display (Entire photo fits without being cut off) -->
+              <div style="min-height:320px; max-height:560px; display:flex; align-items:center; justify-content:center; padding:15px; cursor:pointer;" onclick="openLightbox(document.getElementById('main_img_{{ p.id }}').src, document.getElementById('active_badge_{{ p.id }}').textContent, {{ loop.index0 }}, currentPhotoIndices['p_{{ p.id }}'] || 0)">
+                <img id="main_img_{{ p.id }}" src="{{ all_photos[0].image_url }}" alt="{{ p.title }}" style="max-height:520px; max-width:100%; width:auto; height:auto; object-fit:contain; border-radius:4px; transition:transform 0.3s ease; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+              </div>
+
+              <!-- Caption Bar below image -->
+              <div style="background:#151a1d; padding:10px 18px; border-top:1px solid #333; display:flex; justify-content:space-between; align-items:center; color:#ddd; font-size:13px;">
+                <span id="caption_text_{{ p.id }}">
+                  {{ all_photos[0].caption or 'Latest Site Progress Photo' }}
+                </span>
+                <span style="color:#aaa; font-size:12px;">
+                  Photo 1 of {{ all_photos|length }}
+                </span>
+              </div>
+            </div>
+
+            <!-- All Thumbnails Grid (Customer can see every photo uploaded) -->
+            {% if all_photos|length > 1 %}
+            <div>
+              <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:10px;">
+                Browse All {{ all_photos|length }} Construction Photos:
+              </div>
+              
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px;">
+                {% for photo in all_photos %}
+                <div class="thumb-card thumb-{{ p.id }}" onclick="switchMainImage('{{ p.id }}', '{{ photo.image_url }}', '{{ photo.caption or p.title }}', {{ loop.index0 }}, {{ p_index }})" style="cursor:pointer; border:2px solid {% if loop.first %}var(--gold){% else %}#ddd{% endif %}; border-radius:8px; overflow:hidden; background:#111; text-align:center; transition:all 0.2s ease; position:relative;" id="thumb_{{ p.id }}_{{ loop.index0 }}">
+                  
+                  <!-- Complete Thumbnail (Contain, no cutting) -->
+                  <div style="height:110px; display:flex; align-items:center; justify-content:center; background:#1c2225; padding:4px;">
+                    <img src="{{ photo.image_url }}" alt="Site Photo" style="max-height:100px; max-width:100%; object-fit:contain;">
+                  </div>
+
+                  <!-- Small Caption / Date -->
+                  <div style="background:#fff; padding:6px 8px; font-size:11px; font-weight:700; color:#222; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-top:1px solid #eee;">
+                    {{ photo.caption or ('Photo #' ~ loop.index) }}
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+          {% else %}
+            <!-- No photos uploaded yet -->
+            <div style="background:#f9f9f9; border:1px dashed #d5a000; border-radius:8px; padding:35px 20px; text-align:center; color:#666;">
+              <span style="font-size:36px; display:block; margin-bottom:8px;">🏗️</span>
+              <strong style="color:#222; font-size:15px;">Site Photos In Preparation</strong>
+              <p style="margin:4px 0 0; font-size:13px;">Our site engineers will upload progress photographs as excavation, foundation, and slab casting proceed.</p>
+            </div>
+          {% endif %}
+
+        </div>
+
+        <!-- Direct Assistance Strip -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:14px; border-top:1px solid #eee; font-size:13px; color:#555;">
+          <div>
+            Have questions about your building's current construction phase or drawings?
+          </div>
+          <div style="display:flex; gap:10px;">
+            <a href="tel:+918058339974" class="btn btn-dark" style="font-size:12px; padding:7px 14px;">
+              ☎ Call Office: 8058-339974
+            </a>
+            <a href="https://wa.me/918058339974?text=Hello%20Shree%20Khadapati%20Construction,%20I%20have%20an%20enquiry%20regarding%20my%20building%20project:%20{{ p.title|urlencode }}" target="_blank" class="btn btn-yellow" style="font-size:12px; padding:7px 14px; background:#25D366; color:#fff; border-color:#25D366;">
+              💬 WhatsApp Support
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <!-- Empty State for New Customers -->
+    <div style="background:#fff; border:1px solid #e0d5b5; border-radius:12px; padding:55px 30px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.05); max-width:700px; margin:auto;">
+      <div style="width:80px; height:80px; border-radius:50%; background:#fff9e6; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:36px;">
+        🏗️
+      </div>
+      <h2 style="font-size:26px; font-weight:800; color:#111; margin:0 0 10px;">
+        Your Building Project File is Being Prepared
+      </h2>
+      <p style="color:#555; font-size:15px; line-height:1.6; max-width:540px; margin:0 auto 24px;">
+        Namaste <strong>{{ user.name }}</strong>! Your client account is active. As per Shree Khadapati Balaji Construction security protocols, <strong>only our authorized Admin and Site Engineers</strong> can create and assign building projects to your profile.
+      </p>
+      
+      <div style="background:#fbfbfb; border:1px dashed #d5a000; border-radius:8px; padding:18px; max-width:540px; margin:0 auto 25px; text-align:left; font-size:13px; line-height:1.5; color:#444;">
+        <strong style="color:#111; display:block; margin-bottom:5px;">📌 What happens next?</strong>
+        1. Our engineering desk verifies your plot/building documentation.<br>
+        2. The Admin assigns your custom building project and uploads milestone site photos.<br>
+        3. You will immediately see your live milestone progress bar, site photos, supervisor details, and inspection reports right on this page!
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <a href="tel:+918058339974" class="btn btn-yellow" style="font-size:14px; padding:12px 24px;">
+          ☎ Contact Admin: +91 8058-339974
+        </a>
+        <a href="{{ url_for('contact') }}" class="btn btn-dark" style="font-size:14px; padding:12px 24px;">
+          ✉ Submit Site Query
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<!-- ============================================== -->
+<!-- FULLSCREEN HIGH-DEFINITION LIGHTBOX MODAL -->
+<!-- ============================================== -->
+<div id="lightbox_modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.94); backdrop-filter:blur(8px); display:none; flex-direction:column; justify-content:space-between; padding:20px;">
+  
+  <!-- Lightbox Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; color:#fff; padding:5px 15px; z-index:100000;">
+    <div>
+      <strong id="lightbox_caption" style="font-size:17px; color:var(--gold);">Site Photo</strong>
+      <span id="lightbox_counter" style="color:#aaa; font-size:13px; margin-left:12px;"></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a id="lightbox_download" href="#" target="_blank" download class="btn btn-yellow" style="font-size:12px; padding:6px 14px;">
+        ⬇️ Open Full Original Image
+      </a>
+      <button type="button" onclick="closeLightbox()" style="background:#ff3344; color:#fff; border:none; border-radius:50%; width:38px; height:38px; font-size:20px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(255,0,0,0.4);">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Lightbox Main Image (100% Uncut / Contain) -->
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; position:relative; overflow:auto; padding:10px;">
+    
+    <!-- Prev Arrow Button -->
+    <button type="button" onclick="lightboxPrev()" id="lb_prev_btn" style="position:absolute; left:20px; z-index:100001; background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.4); color:#fff; width:48px; height:48px; border-radius:50%; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
+      ❮
+    </button>
+
+    <!-- The Full Photo -->
+    <img id="lightbox_img" src="" alt="Full Screen Photo" style="max-height:85vh; max-width:92vw; width:auto; height:auto; object-fit:contain; border-radius:6px; box-shadow:0 8px 30px rgba(0,0,0,0.8); border:2px solid #333;">
+
+    <!-- Next Arrow Button -->
+    <button type="button" onclick="lightboxNext()" id="lb_next_btn" style="position:absolute; right:20px; z-index:100001; background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.4); color:#fff; width:48px; height:48px; border-radius:50%; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
+      ❯
+    </button>
+  </div>
+
+  <!-- Lightbox Footer / Hint -->
+  <div style="text-align:center; color:#888; font-size:12px; padding:5px;">
+    Use ❮ ❯ arrows to browse all photos • Press ESC or ✕ to close • Image is displayed in 100% full original dimensions without crop
+  </div>
+</div>
+
+<script>
+const projectPhotosData = [
+  {% for p in user_projects %}
+    [
+      {% if p.photos %}
+        {% for photo in p.photos %}
+          { url: "{{ photo.image_url }}", caption: "{{ photo.caption or p.title }}" },
+        {% endfor %}
+      {% elif p.image_url %}
+        { url: "{{ p.image_url }}", caption: "{{ p.title }}" },
+      {% endif %}
+    ],
+  {% endfor %}
+];
+
+let currentProjIndex = 0;
+let currentPhotoIndex = 0;
+const currentPhotoIndices = {};
+
+function switchMainImage(projectId, imgUrl, caption, photoIndex, projIndex) {
+  const mainImg = document.getElementById('main_img_' + projectId);
+  if (mainImg) {
+    mainImg.src = imgUrl;
+  }
+  const badge = document.getElementById('active_badge_' + projectId);
+  if (badge) {
+    badge.textContent = caption || 'Site Progress';
+  }
+  const captionText = document.getElementById('caption_text_' + projectId);
+  if (captionText) {
+    captionText.textContent = caption || 'Site Progress Photo';
+  }
+  currentPhotoIndices['p_' + projectId] = photoIndex;
+
+  // Update active border on thumbnails
+  const thumbs = document.querySelectorAll('.thumb-' + projectId);
+  thumbs.forEach(t => t.style.borderColor = '#ddd');
+  const activeThumb = document.getElementById('thumb_' + projectId + '_' + photoIndex);
+  if (activeThumb) {
+    activeThumb.style.borderColor = 'var(--gold)';
+  }
+}
+
+function openLightbox(imgUrl, caption, projIndex, photoIndex) {
+  currentProjIndex = projIndex || 0;
+  currentPhotoIndex = photoIndex || 0;
+  
+  const modal = document.getElementById('lightbox_modal');
+  modal.style.display = 'flex';
+  updateLightboxContent();
+}
+
+function updateLightboxContent() {
+  const photos = projectPhotosData[currentProjIndex] || [];
+  if (photos.length === 0) return;
+
+  if (currentPhotoIndex < 0) currentPhotoIndex = 0;
+  if (currentPhotoIndex >= photos.length) currentPhotoIndex = photos.length - 1;
+
+  const cur = photos[currentPhotoIndex];
+  document.getElementById('lightbox_img').src = cur.url;
+  document.getElementById('lightbox_caption').textContent = cur.caption || 'Site Progress Photo';
+  document.getElementById('lightbox_counter').textContent = `(Photo ${currentPhotoIndex + 1} of ${photos.length})`;
+  document.getElementById('lightbox_download').href = cur.url;
+
+  // Toggle arrow buttons if only 1 photo
+  document.getElementById('lb_prev_btn').style.display = photos.length > 1 ? 'flex' : 'none';
+  document.getElementById('lb_next_btn').style.display = photos.length > 1 ? 'flex' : 'none';
+}
+
+function lightboxPrev() {
+  const photos = projectPhotosData[currentProjIndex] || [];
+  if (photos.length <= 1) return;
+  currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
+  updateLightboxContent();
+}
+
+function lightboxNext() {
+  const photos = projectPhotosData[currentProjIndex] || [];
+  if (photos.length <= 1) return;
+  currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+  updateLightboxContent();
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox_modal').style.display = 'none';
+}
+
+document.addEventListener('keydown', function(e) {
+  const modal = document.getElementById('lightbox_modal');
+  if (modal && modal.style.display === 'flex') {
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lightboxPrev();
+    if (e.key === 'ArrowRight') lightboxNext();
+  }
+});
+</script>
+{% endblock %}
