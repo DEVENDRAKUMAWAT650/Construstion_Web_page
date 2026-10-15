@@ -4,20 +4,26 @@
 {% block content %}
 <section class="hero">
   <div class="hero-shade"></div>
-  <div class="hero-inner">
-    <div class="founder-card-wrap">
-      <div class="founder-circle">
-        <img src="{{ url_for('static', filename='image/founder.jpg') }}" alt="Ram Lal Kumawat - Founder">
+  <div class="hero-inner" style="position:relative; width:100%; max-width:1400px; margin:auto; padding:32px 5.5%; display:flex; align-items:center; gap:32px; flex-wrap:wrap;">
+    <div class="founder-card-wrap" style="display:flex; flex-direction:column; align-items:center; flex-shrink:0; text-align:center; position:relative; z-index:5;">
+      <div class="founder-circle" style="width:210px; height:210px; border:5px solid var(--gold); border-radius:50%; overflow:hidden; flex-shrink:0; background:#292929; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+        <img src="{{ url_for('static', filename='image/founder.jpg') }}" alt="Ram Lal Kumawat - Founder" style="width:100%; height:100%; object-fit:cover; object-position:center top; display:block;">
       </div>
-      <div class="founder-badge">
-        <div class="founder-tag">👑 FOUNDER & DIRECTOR</div>
-        <strong class="founder-name">Ram Lal Kumawat</strong>
-        <span class="founder-subtitle">20+ Years Construction Excellence</span>
+      <div class="founder-badge" style="margin-top:-24px; background:linear-gradient(180deg, #181d20 0%, #0d1012 100%); border:2px solid var(--gold); border-radius:12px; padding:8px 16px 10px; box-shadow:0 8px 24px rgba(0,0,0,0.7), 0 0 15px rgba(255,189,8,0.3); display:flex; flex-direction:column; align-items:center; min-width:210px; max-width:240px; z-index:6;">
+        <span class="founder-tag" style="background:var(--gold); color:#111; font-size:10px; font-weight:900; letter-spacing:1px; padding:3px 10px; border-radius:20px; text-transform:uppercase; margin-bottom:4px; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:inline-block;">
+          👑 FOUNDER & DIRECTOR
+        </span>
+        <strong class="founder-name" style="color:#fff; font-size:16px; font-weight:800; line-height:1.2; letter-spacing:0.3px; display:block;">
+          Ram Lal Kumawat
+        </strong>
+        <span class="founder-subtitle" style="color:#ffbd08; font-size:11px; font-weight:700; margin-top:2px; display:block; white-space:nowrap;">
+          20+ Years Construction Excellence
+        </span>
       </div>
     </div>
     <div class="hero-copy">
       <h1>SHREE KHADAPATI<br><span>BALAJI CONSTRUCTION</span></h1>
-      <h2>Building Trust &nbsp; Creating Landmarks</h2>
+      <h2 style="font-size:clamp(16px, 2.2vw, 22px); color:var(--gold); margin:6px 0 14px; font-weight:900; letter-spacing:1px; text-transform:uppercase;">AAPKE SAPNO KO DE MAZBOOT AAKAR</h2>
       <p>Led by Ram Lal Kumawat with 20+ years of experience in construction contracting and project management.</p>
       <div class="hero-actions">
         <a class="btn btn-yellow" href="tel:+918058339974">☎ <span>CALL NOW<small>+91 8058-339974</small></span></a>
