@@ -23,7 +23,11 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-only-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
 
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads", "projects")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    UPLOAD_FOLDER = "/tmp"
+
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
 
@@ -64,17 +68,22 @@ def db_connection():
         charset="utf8mb4",
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False,
+        connect_timeout=3,
     )
 
 
 def query_all(sql, params=()):
-    conn = db_connection()
     try:
-        with conn.cursor() as cur:
-            cur.execute(sql, params)
-            return cur.fetchall()
-    finally:
-        conn.close()
+        conn = db_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                return cur.fetchall()
+        finally:
+            conn.close()
+    except Exception as e:
+        app.logger.warning(f"Database query error: {e}")
+        return []
 
 
 def query_one(sql, params=()):
@@ -139,17 +148,67 @@ def inject_user():
     return {"nav_user": current_user(), "nav_is_admin": is_admin()}
 
 
+DEFAULT_PROJECTS = [
+    {
+        "id": 1,
+        "title": "Residential Villa",
+        "category": "Residential",
+        "description": "Contemporary family home in Jaipur, Rajasthan.",
+        "image_url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+        "id": 2,
+        "title": "Commercial Complex",
+        "category": "Commercial",
+        "description": "Modern commercial space for offices and retail.",
+        "image_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+        "id": 3,
+        "title": "Office Building",
+        "category": "Commercial",
+        "description": "Contemporary office building concept.",
+        "image_url": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+        "id": 4,
+        "title": "Infrastructure Project",
+        "category": "Infrastructure",
+        "description": "Infrastructure and civil engineering project concept.",
+        "image_url": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+        "id": 5,
+        "title": "Renovation Project",
+        "category": "Renovation",
+        "description": "Interior renovation with modern finishes.",
+        "image_url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+        "id": 6,
+        "title": "Industrial Building",
+        "category": "Industrial",
+        "description": "Functional industrial building concept.",
+        "image_url": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1200&q=80"
+    }
+]
+
+
 @app.route("/")
 def home():
     projects = query_all(
         "SELECT * FROM projects ORDER BY created_at DESC LIMIT 3"
     )
+    if not projects:
+        projects = DEFAULT_PROJECTS[:3]
     return render_template("index.html", projects=projects)
 
 
 @app.route("/projects")
 def projects():
     rows = query_all("SELECT * FROM projects ORDER BY created_at DESC")
+    if not rows:
+        rows = DEFAULT_PROJECTS
     return render_template("projects.html", projects=rows)
 
 
