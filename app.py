@@ -229,6 +229,13 @@ def inject_user():
 
 DEFAULT_PROJECTS = [
     {
+        "id": 8,
+        "title": "3 BHK",
+        "category": "Residential",
+        "description": "Contemporary 3 BHK luxury home construction in Jaipur, Rajasthan.",
+        "image_url": "/static/uploads/projects/proj_1793187564_1ee76e1c.jpeg"
+    },
+    {
         "id": 1,
         "title": "Residential Villa",
         "category": "Residential",
