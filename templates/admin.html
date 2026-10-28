@@ -316,7 +316,7 @@
   </div>
 
   <!-- SECTION 2: REGISTERED CUSTOMERS -->
-  <div class="admin-card" style="border-radius:10px; margin-bottom:30px;">
+  <div id="registered-users" class="admin-card" style="border-radius:10px; margin-bottom:30px;">
     <h2 style="font-size:18px; margin:0 0 15px; display:flex; align-items:center; gap:8px;">
       <span>👥</span> Registered Customers (पंजीकृत ग्राहक)
     </h2>
@@ -339,7 +339,7 @@
             <td><strong>{{ u.name }}</strong></td>
             <td>{{ u.email }}</td>
             <td>
-              {% if u.email.lower() == 'shreekhadapaticontruction@gamil.com' or u.role == 'admin' %}
+              {% if u.email.lower() in ['shreekhadapaticontruction@gamil.com', 'shreekhadapaticontruction@gmail.com'] or u.role == 'admin' %}
                 <span style="background:#111; color:var(--gold); font-size:10px; padding:2px 7px; border-radius:3px; font-weight:800;">ADMIN</span>
               {% else %}
                 <span style="background:#e4f5e9; color:#195a32; font-size:10px; padding:2px 7px; border-radius:3px; font-weight:800;">CUSTOMER</span>
@@ -347,10 +347,15 @@
             </td>
             <td>{{ u.created_at }}</td>
             <td>
-              {% if u.email.lower() != 'shreekhadapaticontruction@gamil.com' and u.role != 'admin' %}
-                <button type="button" onclick="assignToCustomer('{{ u.id }}', '{{ u.name|escape }}')" class="btn btn-yellow" style="font-size:11px; padding:4px 10px; font-weight:700;">
-                  + Assign Building
-                </button>
+              {% if u.email.lower() not in ['shreekhadapaticontruction@gamil.com', 'shreekhadapaticontruction@gmail.com'] and u.role != 'admin' %}
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button type="button" onclick="assignToCustomer('{{ u.id }}', '{{ u.name|escape }}')" class="btn btn-yellow" style="font-size:11px; padding:4px 9px; font-weight:700;">
+                    + Assign Building
+                  </button>
+                  <button type="button" onclick="resetCustomerPassword('{{ u.id }}', '{{ u.name|escape }}')" class="btn" style="font-size:11px; padding:4px 9px; font-weight:700; background:#f0f2f5; border:1px solid #ccc; color:#333;">
+                    🔑 Reset Password
+                  </button>
+                </div>
               {% else %}
                 <span style="color:#888; font-size:12px;">Admin Account</span>
               {% endif %}
@@ -475,5 +480,22 @@ function assignToCustomer(userId, userName) {
   document.getElementById('cp_title').value = userName + ' - Residential Villa';
   form.scrollIntoView({ behavior: 'smooth' });
 }
+
+function resetCustomerPassword(userId, userName) {
+  const newPass = prompt(`Customer "${userName}" ke liye naya password darj karein (minimum 8 characters):`);
+  if (!newPass) return;
+  if (newPass.length < 8) {
+    alert("Password kam se kam 8 characters ka hona chahiye.");
+    return;
+  }
+  const form = document.getElementById('admin_reset_pwd_form');
+  form.action = `/admin/users/${userId}/reset-password`;
+  document.getElementById('admin_reset_pwd_input').value = newPass;
+  form.submit();
+}
 </script>
+
+<form id="admin_reset_pwd_form" method="post" action="" style="display:none;">
+  <input type="hidden" name="new_password" id="admin_reset_pwd_input">
+</form>
 {% endblock %}

@@ -1,9 +1,13 @@
 import base64
 import os
+import random
 import re
+import smtplib
 import time
 import uuid
 from decimal import Decimal, InvalidOperation
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from functools import wraps
 
 from PIL import Image
@@ -56,6 +60,72 @@ def save_uploaded_image(file_storage):
         file_storage.seek(0)
         file_storage.save(filepath)
     return f"/static/uploads/projects/{filename}"
+
+
+def send_otp_email(to_email, otp_code, user_name="Valued Customer"):
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    try:
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    except ValueError:
+        smtp_port = 587
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_pass = os.getenv("SMTP_PASS", "").strip()
+
+    # Log clearly in backend terminal for testing/debugging
+    print("\n" + "=" * 55)
+    print(f"[EMAIL SERVICE] Target Email : {to_email}")
+    print(f"[EMAIL SERVICE] 6-Digit OTP  : {otp_code}")
+    print("=" * 55 + "\n", flush=True)
+
+    if not smtp_user or not smtp_pass:
+        # Development mode simulation: OTP is logged in terminal, not shown on webpage
+        return True, "DEV_SIMULATION"
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"{otp_code} is your Shree Khadapati Balaji Construction OTP"
+        msg["From"] = f"Shree Khadapati Balaji Construction <{smtp_user}>"
+        msg["To"] = to_email
+
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif; max-width:540px; margin:auto; padding:25px; border:2px solid #ffbd08; border-radius:12px; background:#fff;">
+            <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid #eee;">
+                <h2 style="margin:0; color:#111; font-size:22px;">Shree Khadapati Balaji Construction</h2>
+                <p style="margin:5px 0 0; color:#c9933e; font-weight:700; font-size:12px; text-transform:uppercase;">Password Reset Verification</p>
+            </div>
+            <div style="padding:25px 5px;">
+                <p style="font-size:15px; color:#222; margin:0 0 12px;">Namaste <b>{user_name}</b>,</p>
+                <p style="font-size:14px; color:#555; line-height:1.5; margin:0 0 20px;">
+                    We received a request to reset your password. Use the verification OTP below to complete your password update:
+                </p>
+                <div style="text-align:center; margin:25px 0;">
+                    <div style="display:inline-block; font-size:34px; font-weight:900; letter-spacing:8px; color:#111; background:#fff6db; border:2px dashed #ffbd08; padding:12px 30px; border-radius:10px; font-family:monospace;">
+                        {otp_code}
+                    </div>
+                </div>
+                <p style="font-size:13px; color:#666; line-height:1.4; margin:0 0 10px;">
+                    ⏱️ This OTP is valid for <b>10 minutes</b> only.
+                </p>
+                <p style="font-size:12px; color:#999; margin:0;">
+                    If you did not request this password reset, please ignore this email. Your account is completely secure.
+                </p>
+            </div>
+            <div style="border-top:1px solid #eee; padding-top:15px; text-align:center; font-size:11px; color:#aaa;">
+                &copy; Shree Khadapati Balaji Construction &bull; Jaipur, Rajasthan
+            </div>
+        </div>
+        """
+        msg.attach(MIMEText(html_body, "html"))
+
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, to_email, msg.as_string())
+        server.quit()
+        return True, "REAL_EMAIL_SENT"
+    except Exception as e:
+        app.logger.warning(f"SMTP send failed: {e}")
+        return False, str(e)
 
 
 def db_connection():
@@ -115,12 +185,21 @@ def current_user():
     )
 
 
+def get_admin_emails():
+    configured = os.getenv("ADMIN_EMAIL", "shreekhadapaticontruction@gamil.com").strip().lower()
+    return {
+        configured,
+        "shreekhadapaticontruction@gmail.com",
+        "shreekhadapaticontruction@gamil.com",
+    }
+
+
 def is_admin():
     if not session.get("user_id"):
         return False
-    admin_email = os.getenv("ADMIN_EMAIL", "shreekhadapaticontruction@gamil.com").lower()
+    user_email = session.get("email", "").strip().lower()
     return (
-        session.get("email", "").lower() == admin_email
+        user_email in get_admin_emails()
         or session.get("role") == "admin"
     )
 
@@ -277,7 +356,7 @@ def signup():
             flash("Password must contain at least 8 characters.", "error")
         elif password != confirm:
             flash("Passwords do not match.", "error")
-        elif email == os.getenv("ADMIN_EMAIL", "shreekhadapaticontruction@gamil.com").lower():
+        elif email in get_admin_emails():
             flash("That email is reserved for the administrator.", "error")
         else:
             try:
@@ -301,6 +380,8 @@ def signup():
 def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
+        if email.endswith("@gamil.com"):
+            email = email[:-10] + "@gmail.com"
         password = request.form.get("password", "")
         user = query_one(
             "SELECT id, name, email, password_hash, role FROM users WHERE email=%s",
@@ -319,6 +400,124 @@ def login():
             return redirect(next_url or url_for("customer_dashboard"))
         flash("Invalid email or password.", "error")
     return render_template("login.html")
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+@app.route("/reset-password", methods=["GET", "POST"])
+def forgot_password():
+    if session.get("user_id"):
+        return redirect(url_for("customer_dashboard" if not is_admin() else "admin"))
+
+    if request.args.get("action") == "change_email":
+        session.pop("reset_email", None)
+        session.pop("reset_otp", None)
+        session.pop("reset_otp_expiry", None)
+        return redirect(url_for("forgot_password"))
+
+    step = 2 if (session.get("reset_email") and session.get("reset_otp")) else 1
+
+    if request.method == "POST":
+        action = request.form.get("action", "send_otp")
+
+        if action in ("send_otp", "resend_otp"):
+            email = request.form.get("email", "").strip().lower()
+            if not email and session.get("reset_email"):
+                email = session.get("reset_email")
+            if email.endswith("@gamil.com"):
+                email = email[:-10] + "@gmail.com"
+
+            if not email:
+                flash("Please enter your registered email address.", "error")
+                return render_template("forgot_password.html", step=1, email="")
+            elif not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+                flash("Please enter a valid email address.", "error")
+                return render_template("forgot_password.html", step=1, email=email)
+            elif email in get_admin_emails():
+                flash("Administrator account password is protected and cannot be reset from this form.", "error")
+                return render_template("forgot_password.html", step=1, email=email)
+
+            user = query_one(
+                "SELECT id, name, email FROM users WHERE email=%s",
+                (email,)
+            )
+            if not user:
+                flash("No account found with this email address. Please check your email or create an account.", "error")
+                return render_template("forgot_password.html", step=1, email=email)
+
+            # Generate secure 6-digit OTP
+            otp_code = f"{random.randint(100000, 999999)}"
+            session["reset_email"] = email
+            session["reset_otp"] = otp_code
+            session["reset_otp_expiry"] = time.time() + 600  # 10 minutes
+
+            # Send OTP email
+            success, result_type = send_otp_email(email, otp_code, user["name"])
+            if not success:
+                app.logger.warning(f"Failed to send OTP to {email}: {result_type}")
+                flash(f"Email server error: {result_type}. Kripya thodi der baad dobara koshish karein.", "error")
+                return render_template("forgot_password.html", step=1, email=email)
+
+            if result_type == "REAL_EMAIL_SENT":
+                flash(f"✅ 6-Digit OTP aapke registered email ({email}) par bhej diya gaya hai! Kripya apna Inbox ya Spam folder check karein.", "success")
+            else:
+                flash(f"✅ 6-Digit OTP send ho gaya hai! (Dev mode: OTP server terminal mein log hua hai, screen par confidential hai).", "success")
+
+            return render_template("forgot_password.html", step=2, email=email)
+
+        elif action == "verify_and_reset":
+            email = session.get("reset_email")
+            saved_otp = session.get("reset_otp")
+            expiry = session.get("reset_otp_expiry", 0)
+
+            entered_otp = request.form.get("otp", "").strip()
+            password = request.form.get("password", "")
+            confirm = request.form.get("confirm_password", "")
+
+            if not email or not saved_otp:
+                flash("Session expired. Please enter your email again.", "error")
+                return redirect(url_for("forgot_password"))
+
+            if time.time() > expiry:
+                flash("OTP has expired. Please click 'Resend OTP' to get a new code.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            if not entered_otp:
+                flash("Please enter the 6-digit OTP code sent to your email.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            if entered_otp != saved_otp:
+                flash("❌ Incorrect OTP! Please enter the valid 6-digit code sent to your email.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            if not password or not confirm:
+                flash("Please complete both password fields.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            if len(password) < 8:
+                flash("Password must contain at least 8 characters.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            if password != confirm:
+                flash("Passwords do not match. Please verify both fields.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+            try:
+                new_hash = generate_password_hash(password)
+                execute(
+                    "UPDATE users SET password_hash=%s WHERE email=%s",
+                    (new_hash, email)
+                )
+                session.pop("reset_email", None)
+                session.pop("reset_otp", None)
+                session.pop("reset_otp_expiry", None)
+                flash("🎉 Password has been reset successfully! Please log in with your new password.", "success")
+                return redirect(url_for("login"))
+            except Exception as e:
+                app.logger.exception("Failed to update password after OTP verification")
+                flash("An error occurred while updating your password. Please try again.", "error")
+                return render_template("forgot_password.html", step=2, email=email)
+
+    return render_template("forgot_password.html", step=step, email=session.get("reset_email", ""))
 
 
 @app.route("/logout")
@@ -376,9 +575,9 @@ def admin():
                ORDER BY uploaded_at DESC, id DESC""",
             (cp["id"],)
         )
-    admin_email = os.getenv("ADMIN_EMAIL", "shreekhadapaticontruction@gamil.com").lower()
+    admin_emails = get_admin_emails()
     registered_customers = [
-        u for u in users if u["email"].lower() != admin_email
+        u for u in users if u["email"].lower() not in admin_emails
     ]
     return render_template(
         "admin.html",
@@ -573,6 +772,28 @@ def delete_customer_project(project_id):
     execute("DELETE FROM customer_projects WHERE id=%s", (project_id,))
     flash("Customer project deleted successfully.", "info")
     return redirect(url_for("admin") + "#customer-projects")
+
+
+@app.route("/admin/users/<int:target_user_id>/reset-password", methods=["POST"])
+@admin_required
+def admin_reset_user_password(target_user_id):
+    new_password = request.form.get("new_password", "").strip()
+    if not new_password or len(new_password) < 8:
+        flash("Password must be at least 8 characters long.", "error")
+        return redirect(url_for("admin") + "#registered-users")
+
+    target_user = query_one("SELECT id, name, email FROM users WHERE id=%s", (target_user_id,))
+    if not target_user:
+        flash("User not found.", "error")
+        return redirect(url_for("admin") + "#registered-users")
+
+    if target_user["email"].lower() in get_admin_emails():
+        flash("Cannot reset admin password from here.", "error")
+        return redirect(url_for("admin") + "#registered-users")
+
+    execute("UPDATE users SET password_hash=%s WHERE id=%s", (generate_password_hash(new_password), target_user_id))
+    flash(f"Password for {target_user['name']} has been reset successfully.", "success")
+    return redirect(url_for("admin") + "#registered-users")
 
 
 @app.route("/ai-design", methods=["GET", "POST"])
