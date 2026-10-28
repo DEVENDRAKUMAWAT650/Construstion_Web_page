@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS customer_projects (
     total_area VARCHAR(100) DEFAULT '',
     supervisor_name VARCHAR(120) DEFAULT '',
     supervisor_phone VARCHAR(30) DEFAULT '',
-    image_url VARCHAR(500) DEFAULT '',
+    image_url LONGTEXT DEFAULT NULL,
     latest_update TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS customer_projects (
 CREATE TABLE IF NOT EXISTS customer_project_photos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
-    image_url VARCHAR(500) NOT NULL,
+    image_url LONGTEXT NOT NULL,
     caption VARCHAR(255) DEFAULT '',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_cpp_project FOREIGN KEY (project_id) REFERENCES customer_projects(id) ON DELETE CASCADE
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS projects (
     title VARCHAR(160) NOT NULL,
     category VARCHAR(80) NOT NULL,
     description TEXT NOT NULL,
-    image_url VARCHAR(500) DEFAULT '',
+    image_url LONGTEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS enquiries (

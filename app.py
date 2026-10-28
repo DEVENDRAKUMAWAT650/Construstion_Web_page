@@ -44,22 +44,29 @@ def save_uploaded_image(file_storage):
         return ""
     if not allowed_file(file_storage.filename):
         return None
-    ext = file_storage.filename.rsplit(".", 1)[1].lower()
-    filename = f"proj_{int(time.time())}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
     try:
+        import io
         img = Image.open(file_storage)
-        if ext in ("jpg", "jpeg") and img.mode in ("RGBA", "P"):
+        if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
-        if img.width > 1920:
-            ratio = 1920 / img.width
-            new_height = int(img.height * ratio)
-            img = img.resize((1920, new_height), Image.Resampling.LANCZOS)
-        img.save(filepath, optimize=True, quality=88)
-    except Exception:
-        file_storage.seek(0)
-        file_storage.save(filepath)
-    return f"/static/uploads/projects/{filename}"
+        max_size = (1200, 1200)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=82, optimize=True)
+        img_bytes = buffer.getvalue()
+        b64 = base64.b64encode(img_bytes).decode("utf-8")
+        return f"data:image/jpeg;base64,{b64}"
+    except Exception as e:
+        app.logger.warning(f"Error processing uploaded image to base64: {e}")
+        try:
+            ext = file_storage.filename.rsplit(".", 1)[1].lower()
+            filename = f"proj_{int(time.time())}_{uuid.uuid4().hex[:8]}.{ext}"
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file_storage.seek(0)
+            file_storage.save(filepath)
+            return f"/static/uploads/projects/{filename}"
+        except Exception:
+            return ""
 
 
 def send_otp_email(to_email, otp_code, user_name="Valued Customer"):
@@ -129,17 +136,32 @@ def send_otp_email(to_email, otp_code, user_name="Valued Customer"):
 
 
 def db_connection():
-    return pymysql.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        port=int(os.getenv("DB_PORT", "3306")),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "root"),
-        database=os.getenv("DB_NAME", "construction_db"),
-        charset="utf8mb4",
-        cursorclass=pymysql.cursors.DictCursor,
-        autocommit=False,
-        connect_timeout=3,
-    )
+    ssl_config = None
+    use_ssl = os.getenv("DB_SSL", "").strip().lower()
+    host = os.getenv("DB_HOST", "localhost").strip()
+
+    # Enable SSL if DB_SSL is explicitly true, or automatically for any remote host (e.g. TiDB, Aiven, RDS)
+    # unless DB_SSL is explicitly false.
+    if use_ssl in ("true", "1", "yes"):
+        ssl_config = {"check_hostname": False, "verify_mode": False}
+    elif use_ssl not in ("false", "0", "no") and host not in ("localhost", "127.0.0.1", ""):
+        ssl_config = {"check_hostname": False, "verify_mode": False}
+
+    conn_params = {
+        "host": host,
+        "port": int(os.getenv("DB_PORT", "3306")),
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD", "root"),
+        "database": os.getenv("DB_NAME", "construction_db"),
+        "charset": "utf8mb4",
+        "cursorclass": pymysql.cursors.DictCursor,
+        "autocommit": False,
+        "connect_timeout": 5,
+    }
+    if ssl_config:
+        conn_params["ssl"] = ssl_config
+
+    return pymysql.connect(**conn_params)
 
 
 def query_all(sql, params=()):
@@ -278,6 +300,141 @@ DEFAULT_PROJECTS = [
         "image_url": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1200&q=80"
     }
 ]
+
+
+_db_initialized = False
+
+
+def init_db():
+    global _db_initialized
+    if _db_initialized:
+        return
+    try:
+        conn = db_connection()
+        try:
+            with conn.cursor() as cur:
+                # 1. Create tables if they do not exist
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(120) NOT NULL,
+                    email VARCHAR(190) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    role VARCHAR(20) NOT NULL DEFAULT 'customer',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                """)
+
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS projects (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    title VARCHAR(160) NOT NULL,
+                    category VARCHAR(80) NOT NULL,
+                    description TEXT NOT NULL,
+                    image_url LONGTEXT DEFAULT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                """)
+
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS customer_projects (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    title VARCHAR(200) NOT NULL,
+                    building_type VARCHAR(100) NOT NULL DEFAULT 'Residential Villa',
+                    location VARCHAR(255) DEFAULT '',
+                    stage VARCHAR(100) NOT NULL DEFAULT 'Planning & Foundation',
+                    progress INT NOT NULL DEFAULT 15,
+                    start_date VARCHAR(50) DEFAULT '',
+                    expected_completion VARCHAR(50) DEFAULT '',
+                    total_area VARCHAR(100) DEFAULT '',
+                    supervisor_name VARCHAR(120) DEFAULT '',
+                    supervisor_phone VARCHAR(30) DEFAULT '',
+                    image_url LONGTEXT DEFAULT NULL,
+                    latest_update TEXT DEFAULT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_cp_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                """)
+
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS customer_project_photos (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    project_id INT NOT NULL,
+                    image_url LONGTEXT NOT NULL,
+                    caption VARCHAR(255) DEFAULT '',
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_cpp_project FOREIGN KEY (project_id) REFERENCES customer_projects(id) ON DELETE CASCADE
+                ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                """)
+
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS enquiries (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(120) NOT NULL,
+                    email VARCHAR(190) NOT NULL,
+                    phone VARCHAR(30) NOT NULL,
+                    project_type VARCHAR(100) NOT NULL,
+                    message TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                """)
+
+                # 2. Upgrade existing tables if image_url was VARCHAR(500)
+                for tbl in ("projects", "customer_projects", "customer_project_photos"):
+                    try:
+                        cur.execute(f"ALTER TABLE {tbl} MODIFY COLUMN image_url LONGTEXT")
+                    except Exception:
+                        pass
+
+                # 3. Ensure Default Admin Account exists
+                admin_email = "shreekhadapaticontruction@gamil.com"
+                cur.execute("SELECT id FROM users WHERE LOWER(email)=%s", (admin_email,))
+                admin_user = cur.fetchone()
+                if not admin_user:
+                    cur.execute(
+                        """INSERT INTO users (name, email, password_hash, role)
+                           VALUES (%s, %s, %s, %s)""",
+                        (
+                            "Shree Khadapati Balaji Admin",
+                            admin_email,
+                            generate_password_hash("Ram@123"),
+                            "admin"
+                        )
+                    )
+
+                # 4. Insert Default Projects if table is empty
+                cur.execute("SELECT COUNT(*) AS cnt FROM projects")
+                res = cur.fetchone()
+                cnt = res["cnt"] if isinstance(res, dict) else res[0]
+                if cnt == 0:
+                    for dp in DEFAULT_PROJECTS:
+                        cur.execute(
+                            """INSERT INTO projects (title, category, description, image_url)
+                               VALUES (%s, %s, %s, %s)""",
+                            (dp["title"], dp["category"], dp["description"], dp["image_url"])
+                        )
+
+            conn.commit()
+            _db_initialized = True
+        finally:
+            conn.close()
+    except Exception as e:
+        app.logger.warning(f"Database auto-init note: {e}")
+
+
+@app.before_request
+def ensure_db_initialized():
+    global _db_initialized
+    if not _db_initialized:
+        init_db()
+
+
+try:
+    init_db()
+except Exception:
+    pass
 
 
 @app.route("/")
