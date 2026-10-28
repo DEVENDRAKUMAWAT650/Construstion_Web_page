@@ -388,21 +388,26 @@ def init_db():
                     except Exception:
                         pass
 
-                # 3. Ensure Default Admin Account exists
-                admin_email = "shreekhadapaticontruction@gamil.com"
-                cur.execute("SELECT id FROM users WHERE LOWER(email)=%s", (admin_email,))
-                admin_user = cur.fetchone()
-                if not admin_user:
-                    cur.execute(
-                        """INSERT INTO users (name, email, password_hash, role)
-                           VALUES (%s, %s, %s, %s)""",
-                        (
-                            "Shree Khadapati Balaji Admin",
-                            admin_email,
-                            generate_password_hash("Ram@123"),
-                            "admin"
+                # 3. Ensure Default Admin Accounts exist
+                for a_email in ("shreekhadapaticontruction@gamil.com", "shreekhadapaticontruction@gmail.com"):
+                    cur.execute("SELECT id FROM users WHERE LOWER(email)=%s", (a_email,))
+                    admin_row = cur.fetchone()
+                    if not admin_row:
+                        cur.execute(
+                            """INSERT INTO users (name, email, password_hash, role)
+                               VALUES (%s, %s, %s, %s)""",
+                            (
+                                "Shree Khadapati Balaji Admin",
+                                a_email,
+                                generate_password_hash("Ram@123"),
+                                "admin"
+                            )
                         )
-                    )
+                    else:
+                        cur.execute(
+                            "UPDATE users SET password_hash=%s, role='admin' WHERE LOWER(email)=%s",
+                            (generate_password_hash("Ram@123"), a_email)
+                        )
 
                 # 4. Insert Default Projects if table is empty
                 cur.execute("SELECT COUNT(*) AS cnt FROM projects")
@@ -544,12 +549,20 @@ def signup():
 def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
-        if email.endswith("@gamil.com"):
-            email = email[:-10] + "@gmail.com"
+        alt_email = email.replace("@gamil.com", "@gmail.com") if "@gamil.com" in email else email.replace("@gmail.com", "@gamil.com")
         password = request.form.get("password", "")
+
+        try:
+            conn = db_connection()
+            conn.close()
+        except Exception as db_err:
+            app.logger.error(f"DB connection failed during login: {db_err}")
+            flash(f"Database connection error: {db_err}", "error")
+            return render_template("login.html")
+
         user = query_one(
-            "SELECT id, name, email, password_hash, role FROM users WHERE email=%s",
-            (email,)
+            "SELECT id, name, email, password_hash, role FROM users WHERE LOWER(email)=%s OR LOWER(email)=%s",
+            (email, alt_email)
         )
         if user and check_password_hash(user["password_hash"], password):
             session.clear()
